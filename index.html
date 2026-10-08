@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#07898c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Atlântico — Controle de Atividades</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{--p:#07898c;--pd:#066f72;--bg:#f3f7f7;--txt:#173247;--mut:#6b7c84;--g:#16a765;--o:#f59e0b;--r:#e53935;--card:#fff;--bd:#e1eaec;--shadow:0 5px 18px #123b4518;--rad:16px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--txt)}
+body{overscroll-behavior-y:contain}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh}
+.header{background:var(--p);color:#fff;padding:13px 16px 15px;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px #0002}
+.header-inner{max-width:1080px;margin:auto;display:flex;align-items:center;gap:12px}
+.logo{height:54px;max-width:300px;width:auto;object-fit:contain}
+.header-sub{font-size:12px;opacity:.9}
+main{max-width:1080px;margin:auto;padding:18px 14px 92px}
+.page{display:none}.page.active{display:block}
+h1{font-size:26px;margin:3px 0 18px}.muted{color:var(--mut);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat{color:#fff;border-radius:15px;padding:12px;box-shadow:var(--shadow);min-height:88px}.stat strong{display:block;font-size:29px;margin:5px 0}.stat span{font-size:12px}.stat.r{background:var(--r)}.stat.o{background:var(--o)}.stat.g{background:var(--g)}
+.search,.field{width:100%;padding:13px 14px;border:1px solid #d6e1e4;border-radius:12px;background:#fff;outline:0}.search:focus,.field:focus{border-color:var(--p);box-shadow:0 0 0 3px #07898c20}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--rad);padding:16px;margin:12px 0;box-shadow:var(--shadow)}
+.vehicle{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--bd);border-radius:14px;padding:14px;margin:9px 0;box-shadow:0 2px 8px #0000000b}.vehicle .main{flex:1}.code{font-size:17px;font-weight:700}.msg{font-size:13px;margin-top:4px;color:var(--mut)}.dot{width:11px;height:11px;border-radius:50%;flex:none}.dot.g{background:var(--g)}.dot.o{background:var(--o)}.dot.r{background:var(--r)}
+.btn{border:0;border-radius:12px;padding:12px 15px;background:var(--p);color:#fff;font-weight:700;width:100%}.btn:hover{background:var(--pd)}.btn.secondary{background:#eaf1f2;color:var(--txt)}.btn.danger{background:#fff0f0;color:var(--r);border:1px solid #ffd1d1}.btn.small{width:auto;padding:9px 12px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{flex:1;min-width:130px}
+.activity{background:#fff;border-radius:14px;padding:15px;margin:12px 0;border-left:5px solid var(--p);box-shadow:var(--shadow)}.activity.r{border-left-color:var(--r)}.activity.o{border-left-color:var(--o)}.activity.g{border-left-color:var(--g)}.activity-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.activity h3{font-size:16px;margin:0}.activity p{font-size:13px;color:var(--mut);margin:7px 0}.badge{color:#fff;border-radius:99px;padding:5px 8px;font-size:10px;font-weight:700;white-space:nowrap}.badge.r{background:var(--r)}.badge.o{background:var(--o)}.badge.g{background:var(--g)}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}.grid2,.filters{display:grid;grid-template-columns:1fr 1fr;gap:12px}.notice{background:#e8f6f7;color:#155e61;border-radius:13px;padding:13px;font-size:13px}.empty{text-align:center;color:var(--mut);padding:32px}
+.nav{position:fixed;z-index:30;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--bd);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}.nav button{flex:1;max-width:190px;border:0;background:#fff;color:#63767e;padding:10px 5px 8px;font-size:12px}.nav button.active{color:var(--p);font-weight:700}.ico{display:block;font-size:21px;margin-bottom:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--bd)}th{background:#f4f8f9}
+.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#173247;color:#fff;padding:11px 15px;border-radius:10px;z-index:100;display:none;font-size:13px;box-shadow:var(--shadow)}
+#leaveShield{position:fixed;inset:0;background:#0007;z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.leavebox{background:#fff;border-radius:18px;max-width:420px;width:100%;padding:20px;box-shadow:0 15px 50px #0006}.leavebox h2{margin:0 0 8px}.leavebox p{color:var(--mut);font-size:14px;line-height:1.45}.leave-actions{display:flex;gap:10px}.leave-actions button{flex:1}
+@media(max-width:650px){.logo{height:46px;max-width:250px}.stats{gap:6px}.stat{padding:9px 6px}.stat strong{font-size:24px}.stat span{font-size:10px}.grid2,.filters{grid-template-columns:1fr}.nav button{max-width:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header"><div class="header-inner">
+  <img src="logo-atlantico.png" class="logo" alt="Atlântico">
+  <div class="header-sub">Controle de Atividades</div>
+</div></header>
+
+<main>
+<section id="p-painel" class="page active">
+<h1>Painel</h1>
+<div class="stats">
+<div class="stat r"><span>Atrasados</span><strong id="nR">0</strong></div>
+<div class="stat o"><span>Próximos / Pendentes</span><strong id="nO">0</strong></div>
+<div class="stat g"><span>Em dia</span><strong id="nG">0</strong></div>
+</div>
+<input id="searchPanel" class="search" placeholder="🔎 Buscar veículo..." oninput="renderPanel()">
+<div id="panelList"></div>
+</section>
+
+<section id="p-detail" class="page">
+<div class="actions"><button class="btn secondary small" onclick="show('painel')">← Voltar</button></div>
+<h1 id="detailTitle">Veículo</h1><div id="activities"></div>
+<div class="card"><h3>Histórico</h3><div id="history"></div></div>
+</section>
+
+<section id="p-cadastro" class="page">
+<h1>Cadastro</h1>
+<div class="card">
+<h3>Novo veículo</h3>
+<label>Código do veículo</label><input id="newCode" class="field" maxlength="40" placeholder="Digite o código do veículo">
+<button class="btn" style="margin-top:14px" onclick="addVehicle()">＋ Cadastrar veículo</button>
+</div>
+<input id="searchCad" class="search" placeholder="🔎 Buscar veículo..." oninput="renderCad()">
+<div id="cadList"></div>
+</section>
+
+<section id="p-exportacao" class="page">
+<h1>Exportação</h1>
+<div class="card"><h3>📤 Exportar dados</h3><p class="muted">Gere um arquivo Excel com os registros realizados.</p>
+<div class="filters">
+<div><label>Data inicial</label><input id="fIni" type="date" class="field"></div>
+<div><label>Data final</label><input id="fFim" type="date" class="field"></div>
+<div><label>Veículo</label><select id="fVeic" class="field"></select></div>
+<div><label>Atividade</label><select id="fAtiv" class="field"><option value="">Todas</option><option>Coleta de Validador</option><option>Coleta de Dados Card</option><option>Checagem de Câmera</option></select></div>
+</div>
+<button class="btn" style="margin-top:15px" onclick="exportExcel()">⬇ Exportar dados (Excel)</button>
+</div>
+<div class="notice">O arquivo terá: Veículo, Atividade, Data, Hora, Status e Observação.</div>
+</section>
+</main>
+
+<nav class="nav">
+<button id="nav-painel" class="active" onclick="show('painel')"><span class="ico">⌂</span>Painel</button>
+<button id="nav-cadastro" onclick="show('cadastro')"><span class="ico">🚗</span>Cadastro</button>
+<button id="nav-exportacao" onclick="show('exportacao')"><span class="ico">▣</span>Exportação</button>
+</nav>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="leaveShield"><div class="leavebox">
+<h2>⚠️ Sair do aplicativo?</h2>
+<p>Você está tentando sair desta tela. Deseja realmente sair? Os dados já salvos permanecem armazenados neste dispositivo.</p>
+<div class="leave-actions"><button class="btn secondary" onclick="cancelLeave()">Continuar</button><button class="btn danger" onclick="confirmLeave()">Sair</button></div>
+</div></div>
+
+<script>
+const KEY='atlantico_controle_veiculos_v1';
+const PERIODS={'Coleta de Validador':86400000,'Coleta de Dados Card':172800000,'Checagem de Câmera':604800000};
+const ACTS=Object.keys(PERIODS);
+let db=loadDB(), currentVehicle=null, leavePending=false;
+
+function loadDB(){try{return JSON.parse(localStorage.getItem(KEY))||{veiculos:[],historico:[]}}catch(e){return{veiculos:[],historico:[]}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+function now(){return new Date()}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fmt(v){return new Date(v).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}
+function dur(ms){let h=Math.floor(ms/3600000),d=Math.floor(h/24);h%=24;if(d)return d+'d '+h+'h';if(h)return h+'h';return Math.max(1,Math.floor(ms/60000))+'min'}
+function state(v,a){
+ const last=v.atividades[a];
+ if(!last)return{c:'o',label:'PENDENTE',text:'Aguardando primeira coleta',due:null};
+ const due=new Date(new Date(last).getTime()+PERIODS[a]),diff=due-now();
+ if(diff<0)return{c:'r',label:'ATRASADO',text:'Atrasado '+dur(-diff),due};
+ if(diff<=PERIODS[a]*.25)return{c:'o',label:'ATENÇÃO',text:'Faltam '+dur(diff),due};
+ return{c:'g',label:'EM DIA',text:'Faltam '+dur(diff),due};
+}
+function vState(v){let c='g';ACTS.forEach(a=>{let x=state(v,a);if(x.c==='r')c='r';else if(x.c==='o'&&c==='g')c='o'});return c}
+function show(p,id){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+ document.getElementById('p-'+p).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+ let n=document.getElementById('nav-'+p);if(n)n.classList.add('active');
+ if(p==='painel')renderPanel();if(p==='cadastro')renderCad();if(p==='exportacao')renderFilters();if(p==='detail')renderDetail(id);
+ window.scrollTo(0,0);
+}
+function renderPanel(){
+ let r=0,o=0,g=0;db.veiculos.forEach(v=>{let s=vState(v);s==='r'?r++:s==='o'?o++:g++});
+ nR.textContent=r;nO.textContent=o;nG.textContent=g;
+ let q=(searchPanel.value||'').toLowerCase(),arr=db.veiculos.filter(v=>v.codigo.toLowerCase().includes(q));
+ panelList.innerHTML=arr.length?arr.map(v=>{
+   let s=vState(v), priority=ACTS.find(a=>state(v,a).c===s)||ACTS[0],e=state(v,priority);
+   let msg=s==='g'?'Todas as atividades em dia':priority+' — '+e.text;
+   return `<div class="vehicle" onclick="show('detail','${v.id}')"><span class="dot ${s}"></span><div class="main"><div class="code">${esc(v.codigo)}</div><div class="msg">${esc(msg)}</div></div><b>›</b></div>`
+ }).join(''):'<div class="empty">Nenhum veículo cadastrado.</div>';
+}
+function icon(a){return a==='Coleta de Validador'?'📄':a==='Coleta de Dados Card'?'💾':'📷'}
+function renderDetail(id){
+ let v=db.veiculos.find(x=>x.id===id);if(!v)return show('painel');currentVehicle=id;
+ detailTitle.textContent='Veículo '+v.codigo;
+ activities.innerHTML=ACTS.map(a=>{let e=state(v,a),last=v.atividades[a],btn=a==='Checagem de Câmera'?'Registrar checagem':'Registrar coleta';
+ return `<div class="activity ${e.c}"><div class="activity-head"><h3>${icon(a)} ${a}</h3><span class="badge ${e.c}">${e.label}</span></div>
+ <p>Último registro: <b>${last?fmt(last):'Ainda não realizado'}</b></p>
+ <p>${last?'Próximo prazo: <b>'+fmt(e.due)+'</b>':'O prazo começa após o primeiro registro.'}</p>
+ <p><b>${e.text}</b></p><button class="btn" onclick="registerActivity('${v.id}','${esc(a)}')">✓ ${btn}</button></div>`}).join('');
+ let hs=db.historico.filter(h=>h.veiculoId===id).sort((a,b)=>new Date(b.dataHora)-new Date(a.dataHora));
+ history.innerHTML=hs.length?`<table><thead><tr><th>Data/Hora</th><th>Atividade</th></tr></thead><tbody>${hs.map(h=>`<tr><td>${fmt(h.dataHora)}</td><td>${esc(h.atividade)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nenhum registro realizado.</div>';
+}
+function registerActivity(id,a){
+ let v=db.veiculos.find(x=>x.id===id);if(!v)return;
+ let t=now().toISOString();v.atividades[a]=t;
+ db.historico.push({veiculoId:id,veiculo:v.codigo,atividade:a,dataHora:t,status:'Realizada',observacao:''});
+ save();renderDetail(id);renderPanel();toast('Registro salvo com sucesso.');
+}
+function addVehicle(){
+ let c=newCode.value.trim();if(!c)return alert('Informe o código do veículo.');
+ if(db.veiculos.some(v=>v.codigo.toLowerCase()===c.toLowerCase()))return alert('Este veículo já está cadastrado.');
+ db.veiculos.push({id:crypto.randomUUID(),codigo:c,criadoEm:now().toISOString(),atividades:{}});save();newCode.value='';renderCad();renderPanel();toast('Veículo cadastrado.');
+}
+function renderCad(){
+ let q=(searchCad.value||'').toLowerCase(),arr=db.veiculos.filter(v=>v.codigo.toLowerCase().includes(q));
+ cadList.innerHTML=arr.length?arr.map(v=>`<div class="vehicle"><span class="dot ${vState(v)}"></span><div class="main"><div class="code">${esc(v.codigo)}</div><div class="msg">Cadastrado em ${new Date(v.criadoEm).toLocaleDateString('pt-BR')}</div></div><button class="btn secondary small" onclick="show('detail','${v.id}')">Abrir</button><button class="btn danger small" onclick="removeVehicle('${v.id}')">🗑</button></div>`).join(''):'<div class="empty">Nenhum veículo cadastrado.</div>';
+}
+function removeVehicle(id){
+ let v=db.veiculos.find(x=>x.id===id);if(!v)return;
+ if(!confirm('Excluir o veículo '+v.codigo+'? O histórico dele também será apagado.'))return;
+ db.veiculos=db.veiculos.filter(x=>x.id!==id);db.historico=db.historico.filter(x=>x.veiculoId!==id);save();renderCad();renderPanel();toast('Veículo excluído.');
+}
+function renderFilters(){fVeic.innerHTML='<option value="">Todos os veículos</option>'+db.veiculos.map(v=>`<option value="${v.id}">${esc(v.codigo)}</option>`).join('')}
+function exportExcel(){
+ if(typeof XLSX==='undefined')return alert('A biblioteca do Excel não carregou. Verifique a conexão e tente novamente.');
+ let ini=fIni.value?new Date(fIni.value+'T00:00:00'):null,fim=fFim.value?new Date(fFim.value+'T23:59:59'):null;
+ let rows=db.historico.filter(h=>{let d=new Date(h.dataHora);return(!ini||d>=ini)&&(!fim||d<=fim)&&(!fVeic.value||h.veiculoId===fVeic.value)&&(!fAtiv.value||h.atividade===fAtiv.value)}).map(h=>{let d=new Date(h.dataHora);return{'Veículo':h.veiculo,'Atividade':h.atividade,'Data':d.toLocaleDateString('pt-BR'),'Hora':d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),'Status':h.status,'Observação':h.observacao||''}});
+ if(!rows.length)return alert('Não há dados para exportar com os filtros selecionados.');
+ let ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Histórico');
+ XLSX.writeFile(wb,'atlantico_historico_'+new Date().toISOString().slice(0,10)+'.xlsx');toast('Excel gerado.');
+}
+function toast(t){let x=document.getElementById('toast');x.textContent=t;x.style.display='block';clearTimeout(window._toast);window._toast=setTimeout(()=>x.style.display='none',2400)}
+function askLeave(){document.getElementById('leaveShield').style.display='flex'}
+function cancelLeave(){leavePending=false;document.getElementById('leaveShield').style.display='none'}
+function confirmLeave(){leavePending=false;document.getElementById('leaveShield').style.display='none';history.back()}
+
+/* Proteção contra fechamento/saída da página. */
+window.addEventListener('beforeunload',e=>{save();e.preventDefault();e.returnValue=''})
+/* Proteção contra gesto de voltar no navegador/celular. */
+history.pushState({appGuard:true},'',location.href);
+window.addEventListener('popstate',()=>{
+ history.pushState({appGuard:true},'',location.href);
+ askLeave();
+});
+/* Evita que um arraste vertical acidental no topo vire uma navegação para trás em navegadores móveis. */
+let touchStartY=0,touchStartX=0;
+document.addEventListener('touchstart',e=>{if(e.touches.length===1){touchStartY=e.touches[0].clientY;touchStartX=e.touches[0].clientX}}, {passive:true});
+document.addEventListener('touchmove',e=>{
+ if(window.scrollY<=0&&e.touches.length===1){
+   let dy=e.touches[0].clientY-touchStartY,dx=Math.abs(e.touches[0].clientX-touchStartX);
+   if(dy>35&&dy>dx) e.preventDefault();
+ }
+},{passive:false});
+/* Salvamento periódico, inclusive enquanto a tela fica aberta. */
+setInterval(()=>{save();if(document.getElementById('p-painel').classList.contains('active'))renderPanel()},60000);
+renderPanel();renderCad();renderFilters();
+</script>
+</body>
+</html>
